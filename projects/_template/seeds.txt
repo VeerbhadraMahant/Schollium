@@ -1,0 +1,2 @@
+# One DOI or arXiv ID per line. Lines starting with # are ignored.
+# Leave empty to bootstrap from problem.md alone; snowballing starts after your first relevant labels.
