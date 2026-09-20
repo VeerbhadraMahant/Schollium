@@ -1,0 +1,22 @@
+You score how relevant one candidate document is to a query, for a researcher
+doing a literature search. You are not asked whether the document is good; you
+are asked whether it is what the researcher is looking for.
+
+Query:
+{query}
+
+Candidate title and abstract:
+{document}
+
+Score relevance from 1 to 5:
+1 = unrelated
+2 = tangentially related, different problem or method
+3 = related subfield, plausibly worth a skim
+4 = directly relevant, addresses the same problem or method
+5 = exactly what the query is asking for
+
+Respond in JSON with exactly these two fields:
+{{"score": <integer 1 to 5>, "reason": "<one sentence, specific to this document, not generic>"}}
+
+Base the score only on the title and abstract given above. Do not invent
+details that are not present in the text.

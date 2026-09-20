@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: scholium-postgres
+    environment:
+      POSTGRES_USER: scholium
+      POSTGRES_PASSWORD: scholium
+      POSTGRES_DB: scholium
+    ports:
+      # 5433 on the host so a local Postgres on 5432 does not collide.
+      - "5433:5432"
+    volumes:
+      - scholium-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scholium -d scholium"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Fallback PDF parser for two-column papers. Off by default:
+  #   docker compose --profile grobid up -d
+  grobid:
+    image: lfoppiano/grobid:0.8.1
+    container_name: scholium-grobid
+    profiles: ["grobid"]
+    ports:
+      - "8070:8070"
+
+volumes:
+  scholium-pgdata:

@@ -1,0 +1,9 @@
+# Normalize line endings in the repository to LF regardless of the
+# committer's platform; Git still checks files out using the OS convention
+# (core.autocrlf). Keeps diffs clean across Windows and Unix contributors.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary

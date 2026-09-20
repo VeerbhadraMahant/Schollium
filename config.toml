@@ -1,0 +1,80 @@
+# Scholium defaults. Checked into git. Never put secrets here.
+# Machine paths and API keys go in config.local.toml, which is gitignored.
+# Environment variables override both, using the prefix SCHOLIUM_ and __ as the
+# nesting separator, for example SCHOLIUM_STORE__DSN or SCHOLIUM_CLIENTS__CORE__API_KEY.
+
+[paths]
+data_dir = "data"
+prompts_dir = "prompts"
+projects_dir = "projects"
+cache_dir = "data/cache"
+pdf_dir = "data/pdfs"
+
+[store]
+dsn = "postgresql://scholium:scholium@localhost:5433/scholium"
+
+[models]
+# Every named step routes to a backend and a model. Steps not listed here fall
+# back to this default and log a warning. Model names are deliberately not
+# pinned in code; see plan section 2.3.
+default_backend = "ollama"
+default_model = ""
+
+[models.ollama]
+base_url = "http://localhost:11434"
+
+[models.openai_compatible]
+base_url = ""
+api_key = ""
+
+[models.embedding]
+paper_backend = "specter2"
+paper_model = "allenai/specter2_base"
+chunk_model = ""
+
+# [models.steps.find.expand]
+# backend = "ollama"
+# model = "<pick at Phase 1 start, record in an ADR>"
+
+[contact]
+# OpenAlex, Crossref and Unpaywall polite pools all key off an email address.
+email = ""
+
+[clients.openalex]
+base_url = "https://api.openalex.org"
+rate_per_second = 8.0
+
+[clients.semanticscholar]
+base_url = "https://api.semanticscholar.org/graph/v1"
+rate_per_second = 1.0
+api_key = ""
+
+[clients.arxiv]
+base_url = "http://export.arxiv.org/api"
+rate_per_second = 0.33
+
+[clients.pubmed]
+base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+rate_per_second = 3.0
+api_key = ""
+
+[clients.europepmc]
+base_url = "https://www.ebi.ac.uk/europepmc/webservices/rest"
+rate_per_second = 3.0
+
+[clients.crossref]
+base_url = "https://api.crossref.org"
+rate_per_second = 5.0
+
+[clients.unpaywall]
+base_url = "https://api.unpaywall.org/v2"
+rate_per_second = 5.0
+
+[clients.dblp]
+base_url = "https://dblp.org"
+rate_per_second = 1.0
+
+[http]
+timeout_seconds = 30.0
+max_retries = 4
+cache_enabled = true

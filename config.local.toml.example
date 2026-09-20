@@ -1,0 +1,14 @@
+# Copy to config.local.toml and fill in. config.local.toml is gitignored.
+# Only override what differs from config.toml.
+
+[contact]
+email = "you@example.com"          # required for OpenAlex, Crossref and Unpaywall polite pools
+
+[clients.semanticscholar]
+api_key = ""                       # free key, required for the embedding channel
+
+[clients.pubmed]
+api_key = ""                       # optional, raises 3 per second to 10
+
+# [store]
+# dsn = "postgresql://scholium:scholium@localhost:5433/scholium"
