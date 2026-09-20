@@ -63,7 +63,7 @@ A single Python package over one shared PostgreSQL store with pgvector, a thin A
 | pyproject.toml | Package metadata, single entry point command `scholium` | 0 |
 | scholium/config.py | Loads one TOML config: paths, model per step, API keys, rate limits | 0 |
 | scholium/store/ | Schema, migrations, typed access functions for every table | 0 |
-| scholium/clients/ | One module per external API: openalex, semanticscholar, arxiv, pubmed, crossref, unpaywall | 0 |
+| scholium/clients/ | One module per external API. Phase 0: openalex, semanticscholar, arxiv, pubmed, europepmc, crossref, unpaywall, dblp. Phase 1 (ADR 0002): openreview, core, springernature, biorxiv | 0 and 1 |
 | scholium/models/ | Model interface: chat, embed, rerank; backends for Ollama and OpenAI-compatible APIs | 0 |
 | scholium/common/ | Paper ID normalization, dedup, text cleaning, PDF parsing, LaTeX helpers | 0 and 2 |
 | scholium/find/ | Tool 1 | 1 |
@@ -290,6 +290,9 @@ One module per API, each with the same shape: a search function, a get-by-id fun
 | PubMed E-utilities | esearch, efetch, elink | no key 3 per second; free key 10 per second | elink gives citation links inside PubMed |
 | Crossref | works by DOI, works search | no key; polite pool with email | best DOI metadata and BibTeX-ready fields |
 | Unpaywall | by DOI | no key; email required; 100k per day | best open-access PDF link per DOI |
+| Europe PMC | search, article by ID, full text XML, citations and references | no key; polite use | superset of PubMed; open-access full text as XML, which parses far better than PDF |
+| DBLP | publication search, author search, venue listing | no key; polite rate | canonical computer science venue names and series; use it to make MICCAI, CVPR and NeurIPS filterable rather than string-matched |
+Phase 1 adds four more clients on a `tool/find-sources` branch, each admitted only if the section 6.7 recall ablation shows it contributes: OpenReview (ML venue submissions and reviews before DOIs exist), CORE (open-access full text from institutional repositories when Unpaywall has no link), Springer Nature (free key, 100 requests per minute on the open access tier, and MICCAI is Springer LNCS), and bioRxiv with medRxiv as one client. IEEE Xplore, ResearchGate, Google Scholar, Scopus and Web of Science are rejected; see ADR 0002 for why.
 
 Each client has a rate limiter, retries with backoff on 429 and 5xx, an on-disk cache keyed by URL so re-running a search costs nothing, and a cassette test.
 
@@ -312,7 +315,7 @@ Each client has a rate limiter, retries with backoff on 429 and 5xx, an on-disk 
 ### 5.3 Phase 0 checklist
 
 - `doctor` passes on your machine with Postgres reachable, pgvector loaded, Ollama and one local model available
-- All six clients return mapped records in tests from cassettes
+- All eight Phase 0 clients return mapped records in tests from cassettes
 - ID normalization tests cover at least 25 cases including the ugly ones
 - Upsert never overwrites filled fields with empty ones (tested)
 - One end-to-end smoke test: search OpenAlex for a phrase, upsert 10 papers, embed them, store embeddings, read them back
@@ -350,7 +353,7 @@ Keyword search finds papers that share your words. Your field renames the same i
 
 **Step 1: query expansion.** The local model receives the problem statement and produces a JSON list of 15 to 20 search phrasings grouped by intent: method names, task names, modality names, evaluation terms, adjacent subfields. The prompt explicitly asks for older terminology and for terms used in clinical venues versus ML venues. Store the expansions in the run stats so you can inspect what the model thought your topic was.
 
-**Step 2: keyword channel.** Each phrasing is searched against OpenAlex, arXiv and PubMed with the year filter. Results are mapped to store records and upserted. Each candidate remembers which phrasing found it. Cap per phrasing per source at 50 to keep the first run under a few minutes.
+**Step 2: keyword channel.** Each phrasing is searched against OpenAlex, arXiv, PubMed, Europe PMC and DBLP with the year filter, and against the Phase 1 sources in ADR 0002 once they are admitted. Results are mapped to store records and upserted. Each candidate remembers which phrasing found it. Cap per phrasing per source at 50 to keep the first run under a few minutes.
 
 **Step 3: embedding channel.** Embed the problem statement with SPECTER2 (adapter for proximity). Query Semantic Scholar's search with the top phrasings and fetch SPECTER embeddings for results in batches of 500. Also embed everything already in the store that lacks a vector. Compute cosine similarity to the problem statement and keep everything above the floor. In later runs, also compute similarity to the centroid of your relevant-labeled papers; that centroid is a better query than the problem statement once you have 20 or more labels.
 
@@ -897,7 +900,15 @@ Everything below is free at the tiers listed. Limits and model names are approxi
 | PubMed E-utilities | clinical and medical physics venues | optional free key | ncbi.nlm.nih.gov/books/NBK25501 |
 | Crossref REST API | authoritative DOI metadata, retractions | none; add email | api.crossref.org |
 | Unpaywall | best open-access PDF per DOI | none; email required | unpaywall.org/products/api |
+| Europe PMC | biomedical search, open-access full text as XML, citations | none; polite use | europepmc.org/RestfulWebService |
+| DBLP | canonical computer science venue and series metadata | none; polite rate | dblp.org/faq/How+to+use+the+dblp+search+API |
+| OpenReview | ML venue submissions and reviews before DOIs exist | none | docs.openreview.net/reference/api-v2 |
+| CORE | open-access full text from institutional repositories | free key; open at lower limits without one | core.ac.uk/services/api |
+| Springer Nature | Springer and LNCS metadata and open access, covers MICCAI | free key; 100 requests per minute on the open access tier | dev.springernature.com |
+| bioRxiv and medRxiv | preprints arXiv does not carry | none | api.biorxiv.org |
 | Zotero local API | library sync, PDF matching | none | zotero.org/support/dev/web_api/v3/start |
+
+Phase 0 builds the first eight rows above. OpenReview, CORE, Springer Nature and bioRxiv arrive in Phase 1 and must earn their place on the section 6.7 recall ablation. IEEE Xplore, ResearchGate, Google Scholar, Scopus and Web of Science are rejected; see ADR 0002.
 
 ### 15.2 Models and serving
 

@@ -30,7 +30,7 @@ Keyword search finds papers that share your words. Your field renames the same i
 
 **Step 1: query expansion.** The local model receives the problem statement and produces a JSON list of 15 to 20 search phrasings grouped by intent: method names, task names, modality names, evaluation terms, adjacent subfields. The prompt explicitly asks for older terminology and for terms used in clinical venues versus ML venues. Store the expansions in the run stats so you can inspect what the model thought your topic was.
 
-**Step 2: keyword channel.** Each phrasing is searched against OpenAlex, arXiv and PubMed with the year filter. Results are mapped to store records and upserted. Each candidate remembers which phrasing found it. Cap per phrasing per source at 50 to keep the first run under a few minutes.
+**Step 2: keyword channel.** Each phrasing is searched against OpenAlex, arXiv, PubMed, Europe PMC and DBLP with the year filter, and against the Phase 1 sources in ADR 0002 once they are admitted. Results are mapped to store records and upserted. Each candidate remembers which phrasing found it. Cap per phrasing per source at 50 to keep the first run under a few minutes.
 
 **Step 3: embedding channel.** Embed the problem statement with SPECTER2 (adapter for proximity). Query Semantic Scholar's search with the top phrasings and fetch SPECTER embeddings for results in batches of 500. Also embed everything already in the store that lacks a vector. Compute cosine similarity to the problem statement and keep everything above the floor. In later runs, also compute similarity to the centroid of your relevant-labeled papers; that centroid is a better query than the problem statement once you have 20 or more labels.
 

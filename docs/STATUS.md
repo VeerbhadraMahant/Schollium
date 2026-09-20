@@ -1,6 +1,6 @@
 # STATUS
 
-Last updated: 2026-09-18 (project start, nothing built yet)
+Last updated: 2026-09-20 (plan committed, ADR 0002 accepted, nothing built yet)
 
 ## Current phase
 
@@ -19,7 +19,7 @@ Next item: Day 1 to 2 skeleton (repository, package, pyproject with `scholium` e
 - [ ] Canonical ID normalization with at least 25 test cases including ugly ones
 - [ ] Upsert semantics tested (never overwrite filled with empty)
 - [ ] Typed accessors for every table plus two similarity helpers (nearest papers, nearest chunks within a paper)
-- [ ] Clients: openalex, semanticscholar, arxiv, pubmed, crossref, unpaywall, each with rate limiter, retries, disk cache, cassette test
+- [ ] Clients: openalex, semanticscholar, arxiv, pubmed, europepmc, crossref, unpaywall, dblp, each with rate limiter, retries, disk cache, cassette test (ADR 0002)
 - [ ] Model layer: chat with JSON schema, embed, rerank; Ollama backend; OpenAI-compatible backend; SPECTER2 embedding backend; stub backend; step registry from config
 - [ ] Run context manager writing run rows with config snapshot and git hash
 - [ ] End-to-end smoke test: search OpenAlex, upsert 10 papers, embed, store, read back
@@ -51,9 +51,10 @@ Next item: Day 1 to 2 skeleton (repository, package, pyproject with `scholium` e
 
 ## Decisions log (pointer)
 
-See docs/adr/. Current: 0001 Postgres with pgvector as the shared store.
+See docs/adr/. Current: 0001 Postgres with pgvector as the shared store; 0002 expanded source clients, eight in Phase 0 and four more in Phase 1.
 
 ## Open questions
 
 - Which 7B to 8B and 14B to 32B open instruct models to use at Phase 1 start (pick then, record in config and ADR).
 - Whether a seed set of 10 or more known-relevant papers exists for the honors project, or Find bootstraps from problem.md alone.
+- Which Phase 1 sources from ADR 0002 survive the section 6.7 recall ablation (OpenReview, CORE, Springer Nature, bioRxiv).

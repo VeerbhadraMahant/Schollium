@@ -120,7 +120,15 @@ Everything below is free at the tiers listed. Limits and model names are approxi
 | PubMed E-utilities | clinical and medical physics venues | optional free key | ncbi.nlm.nih.gov/books/NBK25501 |
 | Crossref REST API | authoritative DOI metadata, retractions | none; add email | api.crossref.org |
 | Unpaywall | best open-access PDF per DOI | none; email required | unpaywall.org/products/api |
+| Europe PMC | biomedical search, open-access full text as XML, citations | none; polite use | europepmc.org/RestfulWebService |
+| DBLP | canonical computer science venue and series metadata | none; polite rate | dblp.org/faq/How+to+use+the+dblp+search+API |
+| OpenReview | ML venue submissions and reviews before DOIs exist | none | docs.openreview.net/reference/api-v2 |
+| CORE | open-access full text from institutional repositories | free key; open at lower limits without one | core.ac.uk/services/api |
+| Springer Nature | Springer and LNCS metadata and open access, covers MICCAI | free key; 100 requests per minute on the open access tier | dev.springernature.com |
+| bioRxiv and medRxiv | preprints arXiv does not carry | none | api.biorxiv.org |
 | Zotero local API | library sync, PDF matching | none | zotero.org/support/dev/web_api/v3/start |
+
+Phase 0 builds the first eight rows above. OpenReview, CORE, Springer Nature and bioRxiv arrive in Phase 1 and must earn their place on the section 6.7 recall ablation. IEEE Xplore, ResearchGate, Google Scholar, Scopus and Web of Science are rejected; see ADR 0002.
 
 ### 15.2 Models and serving
 

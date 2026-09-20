@@ -17,7 +17,7 @@ A single Python package over one shared PostgreSQL store with pgvector, a thin A
 | pyproject.toml | Package metadata, single entry point command `scholium` | 0 |
 | scholium/config.py | Loads one TOML config: paths, model per step, API keys, rate limits | 0 |
 | scholium/store/ | Schema, migrations, typed access functions for every table | 0 |
-| scholium/clients/ | One module per external API: openalex, semanticscholar, arxiv, pubmed, crossref, unpaywall | 0 |
+| scholium/clients/ | One module per external API. Phase 0: openalex, semanticscholar, arxiv, pubmed, europepmc, crossref, unpaywall, dblp. Phase 1 (ADR 0002): openreview, core, springernature, biorxiv | 0 and 1 |
 | scholium/models/ | Model interface: chat, embed, rerank; backends for Ollama and OpenAI-compatible APIs | 0 |
 | scholium/common/ | Paper ID normalization, dedup, text cleaning, PDF parsing, LaTeX helpers | 0 and 2 |
 | scholium/find/ | Tool 1 | 1 |
@@ -182,6 +182,9 @@ One module per API, each with the same shape: a search function, a get-by-id fun
 | PubMed E-utilities | esearch, efetch, elink | no key 3 per second; free key 10 per second | elink gives citation links inside PubMed |
 | Crossref | works by DOI, works search | no key; polite pool with email | best DOI metadata and BibTeX-ready fields |
 | Unpaywall | by DOI | no key; email required; 100k per day | best open-access PDF link per DOI |
+| Europe PMC | search, article by ID, full text XML, citations and references | no key; polite use | superset of PubMed; open-access full text as XML, which parses far better than PDF |
+| DBLP | publication search, author search, venue listing | no key; polite rate | canonical computer science venue names and series; use it to make MICCAI, CVPR and NeurIPS filterable rather than string-matched |
+Phase 1 adds four more clients on a `tool/find-sources` branch, each admitted only if the section 6.7 recall ablation shows it contributes: OpenReview (ML venue submissions and reviews before DOIs exist), CORE (open-access full text from institutional repositories when Unpaywall has no link), Springer Nature (free key, 100 requests per minute on the open access tier, and MICCAI is Springer LNCS), and bioRxiv with medRxiv as one client. IEEE Xplore, ResearchGate, Google Scholar, Scopus and Web of Science are rejected; see ADR 0002 for why.
 
 Each client has a rate limiter, retries with backoff on 429 and 5xx, an on-disk cache keyed by URL so re-running a search costs nothing, and a cassette test.
 
@@ -204,7 +207,7 @@ Each client has a rate limiter, retries with backoff on 429 and 5xx, an on-disk 
 ### 5.3 Phase 0 checklist
 
 - `doctor` passes on your machine with Postgres reachable, pgvector loaded, Ollama and one local model available
-- All six clients return mapped records in tests from cassettes
+- All eight Phase 0 clients return mapped records in tests from cassettes
 - ID normalization tests cover at least 25 cases including the ugly ones
 - Upsert never overwrites filled fields with empty ones (tested)
 - One end-to-end smoke test: search OpenAlex for a phrase, upsert 10 papers, embed them, store embeddings, read them back
